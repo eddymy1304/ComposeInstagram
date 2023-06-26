@@ -1,6 +1,5 @@
-package com.eddymy1304.composeinstagram
+package com.eddymy1304.composeinstagram.login.ui
 
-import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,40 +13,47 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.eddymy1304.composeinstagram.R
 
-@Preview(showBackground = true)
 @Composable
-fun LoginScreen() {
+fun LoginScreen(viewModel: LoginViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Header(Modifier.align(Alignment.TopEnd))
-        Body(Modifier.align(Alignment.Center))
+        Body(Modifier.align(Alignment.Center), viewModel)
         Footer(Modifier.align(Alignment.BottomCenter))
     }
 }
@@ -86,22 +92,27 @@ fun SignUp() {
 }
 
 @Composable
-fun Body(modifier: Modifier) {
+fun Body(modifier: Modifier, viewModel: LoginViewModel) {
 
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var clickLoginButton by remember { mutableStateOf(false) }
+    val email: String by viewModel.email.observeAsState(initial = "")
+    val password: String by viewModel.password.observeAsState(initial = "")
+    val isLoginEnable: Boolean by viewModel.isLoginEnable.observeAsState(initial = false)
 
     Column(modifier = modifier) {
         ImageLogo(Modifier.align(Alignment.CenterHorizontally))
         Spacer(modifier = Modifier.size(16.dp))
-        Email(email) { email = it }
+        Email(email) {
+            viewModel.onLoginChanged(email = it, password = password)
+        }
         Spacer(modifier = Modifier.size(8.dp))
-        Password(password) { password = it }
+        Password(password) {
+            viewModel.onLoginChanged(email = email, password = it)
+        }
+
         Spacer(modifier = Modifier.size(8.dp))
         ForgotPassword(Modifier.align(Alignment.End))
         Spacer(modifier = Modifier.size(8.dp))
-        LoginButton(clickLoginButton)
+        LoginButton(isLoginEnable)
         Spacer(modifier = Modifier.size(16.dp))
         LoginDivider()
         Spacer(modifier = Modifier.size(32.dp))
@@ -158,8 +169,18 @@ fun LoginDivider() {
 }
 
 @Composable
-fun LoginButton(click: Boolean) {
-    Button(onClick = { }, enabled = click, modifier = Modifier.fillMaxWidth()) {
+fun LoginButton(enabledButton: Boolean) {
+    Button(
+        onClick = { },
+        enabled = enabledButton,
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF4EA8E9),
+            disabledContainerColor = Color(0xFF78c8f9),
+            contentColor = Color.White,
+            disabledContentColor = Color.White
+        )
+    ) {
         Text(text = "Log in")
     }
 
@@ -178,13 +199,59 @@ fun ForgotPassword(modifier: Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Password(password: String, onTextChange: (String) -> Unit) {
-    TextField(value = password, onValueChange = { onTextChange(it) }, Modifier.fillMaxWidth())
+
+    var showPassword by remember { mutableStateOf(false) }
+
+    TextField(
+        value = password,
+        onValueChange = { onTextChange(it) },
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text(text = "Password") },
+        maxLines = 1,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = Color(0xFFb2b2b2),
+            containerColor = Color(0xFFFAFAFA),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        trailingIcon = {
+            val image = if (showPassword) {
+                Icons.Filled.VisibilityOff
+            } else {
+                Icons.Filled.Visibility
+            }
+            IconButton(onClick = { showPassword = !showPassword }) {
+                Icon(imageVector = image, contentDescription = "show Password")
+            }
+        },
+        visualTransformation = if (showPassword) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Email(email: String, onTextChange: (String) -> Unit) {
-    TextField(value = email, onValueChange = { onTextChange(it) }, Modifier.fillMaxWidth())
+    TextField(
+        value = email,
+        onValueChange = { onTextChange(it) },
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text(text = "Email") },
+        maxLines = 1,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = Color(0xFFb2b2b2),
+            containerColor = Color(0xFFFAFAFA),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        )
+    )
 }
 
 @Composable

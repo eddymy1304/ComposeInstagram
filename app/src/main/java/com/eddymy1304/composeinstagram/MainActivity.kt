@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.eddymy1304.composeinstagram.login.ui.LoginScreen
+import com.eddymy1304.composeinstagram.login.ui.LoginViewModel
 import com.eddymy1304.composeinstagram.ui.theme.ComposeInstagramTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LoginScreen()
+                    LoginScreen(LoginViewModel())
                 }
             }
         }
@@ -41,6 +43,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     ComposeInstagramTheme {
-        LoginScreen()
+        //LoginScreen()
     }
 }
